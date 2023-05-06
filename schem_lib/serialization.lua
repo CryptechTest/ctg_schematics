@@ -156,7 +156,7 @@ end
 
 --- Loads the nodes represented by string `value` at position `origin_pos`.
 -- @return The number of nodes deserialized.
-function schemlib.process_emitted(origin_pos, value, obj)
+function schemlib.process_emitted(origin_pos, value, obj, moveObj)
     if obj == nil then
         obj = load_json_schematic(value)
     end
@@ -177,12 +177,14 @@ function schemlib.process_emitted(origin_pos, value, obj)
     minetest.emerge_area(pos1, pos2, function(blockpos, action, calls_remaining, param)
         if calls_remaining == 0 then
             local manip, area = schemlib.keep_loaded(pos1, pos2)
-        
+
             load_to_map(origin_pos, obj)
 
-            minetest.after(1, function()
-                schemlib.jump_ship_move_contents(obj.meta)
-            end)
+            if moveObj then
+                minetest.after(1, function()
+                    schemlib.jump_ship_move_contents(obj.meta)
+                end)
+            end
         end
     end)
 
