@@ -180,3 +180,27 @@ function schemlib.jump_ship_move_contents(lmeta)
 
     return dist_travel
 end
+
+function schemlib.check_dest_clear(pos, dest, size)
+
+    local pos1 = vector.subtract(dest, {
+        x = size.w,
+        y = size.h,
+        z = size.l
+    })
+    local pos2 = vector.add(dest, {
+        x = size.w,
+        y = size.h,
+        z = size.l
+    })
+
+    local vol = (size.w * 2) * (size.h * 2) * (size.l * 2)
+
+    local nodes = minetest.find_nodes_in_area(pos1, pos2, "group:vacuum")
+
+    if #nodes >= vol then
+        return true
+    end
+
+    return false
+end
