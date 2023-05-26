@@ -181,7 +181,7 @@ function schemlib.process_emitted(origin_pos, value, obj, moveObj)
             load_to_map(origin_pos, obj)
 
             if moveObj then
-                minetest.after(1, function()
+                minetest.after(2, function()
                     schemlib.jump_ship_move_contents(obj.meta)
                 end)
             end
