@@ -18,7 +18,7 @@ function schemlib.clear_position(pos1, pos2)
                     count = count + 1
 
                     minetest.set_node(pos, {
-                        name = "vacuum:atmos_thin"
+                        name = "vacuum:vacuum"
                     })
 
                 end
