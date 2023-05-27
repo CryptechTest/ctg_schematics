@@ -150,13 +150,6 @@ local function load_to_map(origin_pos, obj)
         -- Entry acts as both position and node
         add_node(entry, entry)
 
-        --[[if entry.meta then
-            get_meta(entry):from_table(entry.meta)
-        end--]]
-    end
-
-    for i, entry in ipairs(nodes) do
-        entry.x, entry.y, entry.z = origin_x + (entry.x - o.x), origin_y + (entry.y - o.y), origin_z + (entry.z - o.z)
         if entry.meta then
             get_meta(entry):from_table(entry.meta)
         end
