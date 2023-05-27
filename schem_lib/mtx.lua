@@ -115,16 +115,16 @@ function schemlib.load_emitted_file(data)
             if not chunk then
                 break
             end
-            minetest.log(">> loaded chunk " .. c)
+            minetest.log(">> Loaded chunk " .. c)
             c = c + 1
             content = content .. chunk
         end
     end
     --local content = file:read("*all")
     file:close()
-    minetest.log(">>>> File Read " .. data.filename)
+    minetest.log(">>>> File Loaded " .. data.filename)
     local count, ver, meta = schemlib.process_emitted(data.origin, content, nil, data.moveObj)
     
-    minetest.log(">>>> loaded " .. data.filename)
+    minetest.log(">>> Emitted Load " .. data.filename)
     return meta
 end
