@@ -120,8 +120,8 @@ function schemlib.load_emitted_file(data)
             content = content .. chunk
         end
     end
+    --local content = file:read("*all")
     file:close()
-    --local f = file:read("*all")
     minetest.log(">>>> File Read " .. data.filename)
     local count, ver, meta = schemlib.process_emitted(data.origin, content, nil, data.moveObj)
     

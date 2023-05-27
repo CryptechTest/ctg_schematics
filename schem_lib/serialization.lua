@@ -28,7 +28,9 @@ function schemlib.serialize(pos1, pos2)
             pos.z = pos1.z
             while pos.z <= pos2.z do
                 local node = get_node(pos)
-                if node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" then
+                if minetest.registered_nodes[node.name] == nil then
+                    -- ignore
+                elseif node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" then
                     count = count + 1
 
                     local meta
@@ -148,6 +150,13 @@ local function load_to_map(origin_pos, obj)
         -- Entry acts as both position and node
         add_node(entry, entry)
 
+        --[[if entry.meta then
+            get_meta(entry):from_table(entry.meta)
+        end--]]
+    end
+
+    for i, entry in ipairs(nodes) do
+        entry.x, entry.y, entry.z = origin_x + (entry.x - o.x), origin_y + (entry.y - o.y), origin_z + (entry.z - o.z)
         if entry.meta then
             get_meta(entry):from_table(entry.meta)
         end
