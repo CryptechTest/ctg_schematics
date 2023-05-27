@@ -157,6 +157,7 @@ end
 --- Loads the nodes represented by string `value` at position `origin_pos`.
 -- @return The number of nodes deserialized.
 function schemlib.process_emitted(origin_pos, value, obj, moveObj)
+    minetest.log(">>>> Loading Emitted...")
     if obj == nil then
         obj = load_json_schematic(value)
     end
@@ -171,6 +172,8 @@ function schemlib.process_emitted(origin_pos, value, obj, moveObj)
     if not origin_pos or origin_pos == nil then
         origin_pos = obj.meta.dest
     end
+
+    minetest.log(">>>> Processing Emitted...")
 
     local pos1, pos2 = allocate_with_nodes(origin_pos, nodes)
 
