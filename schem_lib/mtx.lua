@@ -106,10 +106,25 @@ end
 function schemlib.load_emitted_file(data)
     minetest.log(">>>> loading " .. data.filename)
     local file = io.open(data.filepath .. data.filename .. extension, "r")
-    local f = file:read("*all")
-    minetest.log(">>>> File Read " .. data.filename)
-    local count, ver, meta = schemlib.process_emitted(data.origin, f, nil, data.moveObj)
+    local content = ""
+    local chunksize = 32768
+    if file then
+        local c = 0
+        while true do
+            local chunk = file:read(chunksize)
+            if not chunk then
+                break
+            end
+            minetest.log(">> loaded chunk " .. c)
+            c = c + 1
+            content = content .. chunk
+        end
+    end
     file:close()
+    --local f = file:read("*all")
+    minetest.log(">>>> File Read " .. data.filename)
+    local count, ver, meta = schemlib.process_emitted(data.origin, content, nil, data.moveObj)
+    
     minetest.log(">>>> loaded " .. data.filename)
     return meta
 end
