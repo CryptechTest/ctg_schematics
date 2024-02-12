@@ -181,6 +181,62 @@ function schemlib.jump_ship_move_contents(lmeta)
     return dist_travel
 end
 
+local BLOCKSIZE = minetest.MAP_BLOCKSIZE
+local function get_blockpos(pos)
+    return {
+        x = math.floor(pos.x / BLOCKSIZE),
+        y = math.floor(pos.y / BLOCKSIZE),
+        z = math.floor(pos.z / BLOCKSIZE)
+    }
+end
+
+function schemlib.force_load_area(pos1, pos2)
+    if (pos1 == nil or pos2 == nil) then
+        return
+    end
+    local last_pos = pos1
+    for x = pos1.x, pos2.x do
+        for y = pos1.y, pos2.y do
+            for z = pos1.z, pos2.z do
+                local npos = {
+                    x = x,
+                    y = y,
+                    z = z
+                };
+                local pos = get_blockpos(npos)
+                if (last_pos.x ~= pos.x and last_pos.y ~= pos.y and last_pos.z ~= pos.z) then
+                    last_pos = pos;
+                    minetest.forceload_block(pos)
+                    -- minetest.log("loaded block... " .. dump(pos))
+                end
+            end
+        end
+    end
+end
+
+function schemlib.force_unload_area(pos1, pos2)
+    if (pos1 == nil or pos2 == nil) then
+        return
+    end
+    local last_pos = pos1
+    for x = pos1.x, pos2.x do
+        for y = pos1.y, pos2.y do
+            for z = pos1.z, pos2.z do
+                local npos = {
+                    x = x,
+                    y = y,
+                    z = z
+                };
+                local pos = get_blockpos(npos)
+                if (last_pos.x ~= pos.x and last_pos.y ~= pos.y and last_pos.z ~= pos.z) then
+                    last_pos = pos;
+                    minetest.forceload_free_block(pos)
+                end
+            end
+        end
+    end
+end
+
 function schemlib.check_dest_clear(pos, dest, size)
 
     local pos1 = vector.subtract(dest, {
@@ -194,11 +250,44 @@ function schemlib.check_dest_clear(pos, dest, size)
         z = size.l
     })
 
+    schemlib.force_load_area(pos1, pos2);
+
     local vol = (size.w * 2) * (size.h * 2) * (size.l * 2)
 
-    local nodes = minetest.find_nodes_in_area(pos1, pos2, "group:vacuum")
+    local c_vacuum = minetest.get_content_id("vacuum:vacuum")
+    local c_atmos = minetest.get_content_id("vacuum:atmos_thin")
+    local c_atmos2 = minetest.get_content_id("asteroid:atmos")
 
-    if #nodes >= vol then
+    local manip = minetest.get_voxel_manip()
+    local e1, e2 = manip:read_from_map(pos1, pos2)
+    local area = VoxelArea:new({
+        MinEdge = e1,
+        MaxEdge = e2
+    })
+    local data = manip:get_data()
+
+    local count = 0
+    for z = pos1.z, pos2.z do
+        for y = pos1.y, pos2.y do
+            for x = pos1.x, pos2.x do
+
+                local index = area:index(x, y, z)
+                if data[index] == c_vacuum then
+                    count = count + 1
+                elseif data[index] == c_atmos then
+                    count = count + 1
+                elseif data[index] == c_atmos2 then
+                    count = count + 1
+                end
+
+            end
+        end
+    end
+
+    -- local nodes = minetest.find_nodes_in_area(pos1, pos2, {"group:vacuum", "group:atmosphere"})
+    -- local nodesI = minetest.find_nodes_in_area(pos1, pos2, "ignore")
+
+    if count >= vol then
         return true
     end
 
