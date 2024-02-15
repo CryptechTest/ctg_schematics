@@ -30,7 +30,8 @@ function schemlib.serialize(pos1, pos2)
                 local node = get_node(pos)
                 if minetest.registered_nodes[node.name] == nil then
                     -- ignore
-                elseif node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" then
+                elseif node.name ~= "air" and node.name ~= "ignore" and node.name ~= "vacuum:vacuum" and node.name ~=
+                    "asteroid:atmos" then
                     count = count + 1
 
                     local meta
