@@ -181,6 +181,26 @@ function schemlib.jump_ship_move_contents(lmeta)
     return dist_travel
 end
 
+local function emerge_callback(pos, action, num_calls_remaining, context)
+    -- On first call, record number of blocks
+    if not context.total_blocks then
+        context.total_blocks = num_calls_remaining + 1
+        context.loaded_blocks = 0
+    end
+
+    -- Increment number of blocks loaded
+    context.loaded_blocks = context.loaded_blocks + 1
+
+    -- Send progress message
+    if context.total_blocks == context.loaded_blocks then
+        -- minetest.chat_send_all("Finished loading blocks!")
+    else
+        local perc = 100 * context.loaded_blocks / context.total_blocks
+        local msg = string.format("Loading blocks %d/%d (%.2f%%)", context.loaded_blocks, context.total_blocks, perc)
+        -- minetest.chat_send_all(msg)
+    end
+end
+
 local BLOCKSIZE = minetest.MAP_BLOCKSIZE
 local function get_blockpos(pos)
     return {
@@ -188,53 +208,6 @@ local function get_blockpos(pos)
         y = math.floor(pos.y / BLOCKSIZE),
         z = math.floor(pos.z / BLOCKSIZE)
     }
-end
-
-function schemlib.force_load_area(pos1, pos2)
-    if (pos1 == nil or pos2 == nil) then
-        return
-    end
-    local last_pos = pos1
-    for x = pos1.x, pos2.x do
-        for y = pos1.y, pos2.y do
-            for z = pos1.z, pos2.z do
-                local npos = {
-                    x = x,
-                    y = y,
-                    z = z
-                };
-                local pos = get_blockpos(npos)
-                if (last_pos.x ~= pos.x and last_pos.y ~= pos.y and last_pos.z ~= pos.z) then
-                    last_pos = pos;
-                    minetest.forceload_block(pos)
-                    -- minetest.log("loaded block... " .. dump(pos))
-                end
-            end
-        end
-    end
-end
-
-function schemlib.force_unload_area(pos1, pos2)
-    if (pos1 == nil or pos2 == nil) then
-        return
-    end
-    local last_pos = pos1
-    for x = pos1.x, pos2.x do
-        for y = pos1.y, pos2.y do
-            for z = pos1.z, pos2.z do
-                local npos = {
-                    x = x,
-                    y = y,
-                    z = z
-                };
-                local pos = get_blockpos(npos)
-                if (last_pos.x ~= pos.x and last_pos.y ~= pos.y and last_pos.z ~= pos.z) then
-                    last_pos = pos;
-                    minetest.forceload_free_block(pos)
-                end
-            end
-        end
-    end
 end
 
 function schemlib.check_dest_clear(pos, dest, size)
@@ -250,13 +223,12 @@ function schemlib.check_dest_clear(pos, dest, size)
         z = size.l
     })
 
-    schemlib.force_load_area(pos1, pos2);
-
     local vol = (size.w * 2) * (size.h * 2) * (size.l * 2)
 
     local c_vacuum = minetest.get_content_id("vacuum:vacuum")
     local c_atmos = minetest.get_content_id("vacuum:atmos_thin")
     local c_atmos2 = minetest.get_content_id("asteroid:atmos")
+    local c_ignore = minetest.get_content_id("ignore")
 
     local manip = minetest.get_voxel_manip()
     local e1, e2 = manip:read_from_map(pos1, pos2)
@@ -267,27 +239,34 @@ function schemlib.check_dest_clear(pos, dest, size)
     local data = manip:get_data()
 
     local count = 0
+    local ignore = 0
     for z = pos1.z, pos2.z do
         for y = pos1.y, pos2.y do
             for x = pos1.x, pos2.x do
 
                 local index = area:index(x, y, z)
-                if data[index] == c_vacuum then
+                if data[index] == c_ignore then
+                    ignore = ignore + 1
+                elseif data[index] == c_vacuum then
                     count = count + 1
                 elseif data[index] == c_atmos then
-                    count = count + 1
+                    -- count = count + 1
                 elseif data[index] == c_atmos2 then
-                    count = count + 1
+                    -- count = count + 1
                 end
 
             end
         end
     end
 
-    -- local nodes = minetest.find_nodes_in_area(pos1, pos2, {"group:vacuum", "group:atmosphere"})
-    -- local nodesI = minetest.find_nodes_in_area(pos1, pos2, "ignore")
+    if ignore > 0 and count == 0 then
+        local context = {} -- persist data between callback calls
+        minetest.emerge_area(pos1, pos2, emerge_callback, context)
 
-    if count >= vol then
+        return false
+    end
+
+    if count >= vol and ignore == 0 then
         return true
     end
 
