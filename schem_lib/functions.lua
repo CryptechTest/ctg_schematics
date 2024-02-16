@@ -54,7 +54,10 @@ end
 
 local function do_particles(pos)
     local prt = {
-        texture = "ctg_jetpack_vapor_cloud.png",
+        texture = {
+            name = "ctg_jetpack_vapor_cloud.png",
+            fade = "out"
+        },
         texture_r180 = "ctg_jetpack_vapor_cloud.png" .. "^[transformR180",
         vel = 0.6,
         time = 7,
@@ -223,8 +226,6 @@ function schemlib.check_dest_clear(pos, dest, size)
         z = size.l
     })
 
-    local vol = (size.w * 2) * (size.h * 2) * (size.l * 2)
-
     local c_vacuum = minetest.get_content_id("vacuum:vacuum")
     local c_atmos = minetest.get_content_id("vacuum:atmos_thin")
     local c_atmos2 = minetest.get_content_id("asteroid:atmos")
@@ -238,12 +239,14 @@ function schemlib.check_dest_clear(pos, dest, size)
     })
     local data = manip:get_data()
 
+    local vol = 0
     local count = 0
     local ignore = 0
     for z = pos1.z, pos2.z do
         for y = pos1.y, pos2.y do
             for x = pos1.x, pos2.x do
 
+                vol = vol + 1
                 local index = area:index(x, y, z)
                 if data[index] == c_ignore then
                     ignore = ignore + 1
@@ -252,7 +255,7 @@ function schemlib.check_dest_clear(pos, dest, size)
                 elseif data[index] == c_atmos then
                     -- count = count + 1
                 elseif data[index] == c_atmos2 then
-                    -- count = count + 1
+                    count = count + 1
                 end
 
             end
@@ -266,7 +269,7 @@ function schemlib.check_dest_clear(pos, dest, size)
         return false
     end
 
-    if count >= vol and ignore == 0 then
+    if count == vol and ignore == 0 then
         return true
     end
 
