@@ -184,13 +184,13 @@ function schemlib.process_emitted(origin_pos, value, obj, moveObj)
         if calls_remaining == 0 then
             local manip, area = schemlib.keep_loaded(pos1, pos2)
 
-            minetest.after(0, function()
-                load_to_map(origin_pos, obj)
-            end)
+            load_to_map(origin_pos, obj)
 
             if moveObj then
+                schemlib.jump_ship_emit_player(obj.meta, false)
                 minetest.after(2, function()
                     schemlib.jump_ship_move_contents(obj.meta)
+                    -- schemlib.jump_ship_emit_player(obj.meta, true)
                 end)
             end
         end

@@ -55,10 +55,10 @@ end
 local function do_particles(pos)
     local prt = {
         texture = {
-            name = "ctg_jetpack_vapor_cloud.png",
+            name = "ctg_schem_vapor_cloud.png",
             fade = "out"
         },
-        texture_r180 = "ctg_jetpack_vapor_cloud.png" .. "^[transformR180",
+        texture_r180 = "ctg_schem_vapor_cloud.png" .. "^[transformR180",
         vel = 0.6,
         time = 7,
         size = 6,
@@ -97,6 +97,64 @@ local function do_particles(pos)
         vertical = false,
         texture = texture,
         glow = prt.glow
+    })
+end
+
+local function do_particle_zap(pos, amount)
+    local texture = {
+        name = "ctg_tele_zap_anim.png",
+        fade = "out"
+    }
+    local animation = {
+        type = "vertical_frames",
+        aspect_w = 64,
+        aspect_h = 64,
+        length = 0.27
+    }
+    -- spawn particle
+    minetest.add_particlespawner({
+        amount = amount,
+        time = math.random(0.5, 0.7),
+        minpos = {
+            x = pos.x - 0.2,
+            y = pos.y - 0.15,
+            z = pos.z - 0.2
+        },
+        maxpos = {
+            x = pos.x + 0.2,
+            y = pos.y + 0.42,
+            z = pos.z + 0.2
+        },
+        minvel = {
+            x = 0,
+            y = 0,
+            z = 0
+        },
+        maxvel = {
+            x = 0,
+            y = 0.15,
+            z = 0
+        },
+        minacc = {
+            x = -0,
+            y = -0.1,
+            z = -0
+        },
+        maxacc = {
+            x = 0,
+            y = 0.25,
+            z = 0
+        },
+        minexptime = 0.28,
+        maxexptime = 0.46,
+        minsize = 20,
+        maxsize = 28,
+        collisiondetection = false,
+        collision_removal = false,
+        object_collision = false,
+        animation = animation,
+        texture = texture,
+        glow = 15
     })
 end
 
@@ -172,11 +230,69 @@ function schemlib.jump_ship_move_contents(lmeta)
                         end
                     end)
                 end
-                minetest.after(0.5, function()
+                minetest.after(0, function()
                     obj:set_pos(new_pos)
+                    do_particle_zap(new_pos, 2)
                 end)
             else
                 obj:set_pos(new_pos)
+            end
+        end
+    end
+
+    return dist_travel
+end
+
+function schemlib.jump_ship_emit_player(lmeta, arriving)
+    local pos = lmeta.origin
+    local dest = lmeta.dest
+    local dist_travel = get_distance(pos, dest)
+    local dist_x = 0
+    local dist_y = 0
+    local dist_z = 0
+
+    if pos.x >= dest.x then
+        dist_x = -(pos.x - dest.x)
+    elseif pos.x < dest.x then
+        dist_x = dest.x - pos.x
+    end
+    if pos.y >= dest.y then
+        dist_y = -(pos.y - dest.y)
+    elseif pos.y < dest.y then
+        dist_y = dest.y - pos.y
+    end
+    if pos.z >= dest.z then
+        dist_z = -(pos.z - dest.z)
+    elseif pos.z < dest.z then
+        dist_z = dest.z - pos.z
+    end
+
+    local pos1 = vector.subtract(pos, {
+        x = lmeta.offset.x,
+        y = lmeta.offset.y,
+        z = lmeta.offset.z
+    })
+    local pos2 = vector.add(pos, {
+        x = lmeta.offset.x,
+        y = lmeta.offset.y,
+        z = lmeta.offset.z
+    })
+
+    -- get cube of area nearby
+    local objects = minetest.get_objects_in_area(pos1, pos2) or {}
+    for _, obj in pairs(objects) do
+        if obj then
+            local new_pos = vector.add(obj:get_pos(), {
+                x = dist_x,
+                y = dist_y,
+                z = dist_z
+            })
+            if obj:is_player() then
+                local player = minetest.get_player_by_name(obj:get_player_name())
+
+                player:set_physics_override({
+                    gravity = 0
+                })
             end
         end
     end
