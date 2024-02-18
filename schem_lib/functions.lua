@@ -58,7 +58,10 @@ local function do_particles(pos)
             name = "ctg_schem_vapor_cloud.png",
             fade = "out"
         },
-        texture_r180 = "ctg_schem_vapor_cloud.png" .. "^[transformR180",
+        texture_r180 = {
+            name = "ctg_schem_vapor_cloud.png" .. "^[transformR180",
+            fade = "out"
+        },
         vel = 0.6,
         time = 7,
         size = 6,
@@ -220,7 +223,7 @@ function schemlib.jump_ship_move_contents(lmeta)
                 end
                 for i = 1, 3 do
                     minetest.after(i, function()
-                        for i = 1, 20 do
+                        for i = 1, 3 do
                             local p = {
                                 x = new_pos.x + math.random(-6, 6),
                                 y = new_pos.y + math.random(-2, 4),
@@ -230,6 +233,7 @@ function schemlib.jump_ship_move_contents(lmeta)
                         end
                     end)
                 end
+                obj:set_pos(new_pos)
                 minetest.after(0, function()
                     obj:set_pos(new_pos)
                     do_particle_zap(new_pos, 2)
