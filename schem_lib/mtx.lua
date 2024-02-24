@@ -97,9 +97,12 @@ function schemlib.load_emitted(data)
     local path = world_path .. DIR_DELIM .. STOR_DIR
     local filename = path .. DIR_DELIM .. data.filename
     local file = io.open(filename .. extension, "r")
-    local count, ver, meta = schemlib.process_emitted(data.origin, file:read("*all"), nil, data.moveObj)
-    file:close()
-    return meta
+    if file then
+        local count, ver, meta = schemlib.process_emitted(data.origin, file:read("*all"), nil, data.moveObj)
+        file:close()
+        return meta
+    end
+    return nil
 end
 
 -- Load from file
