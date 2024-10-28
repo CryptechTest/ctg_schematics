@@ -5,7 +5,8 @@ schemlib = {}
 -- load files
 local default_path = minetest.get_modpath("schemlib")
 
-dofile(default_path .. DIR_DELIM .. "common.lua")
-dofile(default_path .. DIR_DELIM .. "functions.lua")
-dofile(default_path .. DIR_DELIM .. "serialization.lua")
-dofile(default_path .. DIR_DELIM .. "mtx.lua")
+dofile(default_path .. "/" .. "common.lua")
+dofile(default_path .. "/" .. "functions.lua")
+dofile(default_path .. "/" .. "serialization.lua")
+dofile(default_path .. "/" .. "mtx.lua")
+dofile(default_path .. "/" .. "api.lua")

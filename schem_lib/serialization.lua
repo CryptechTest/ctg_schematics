@@ -1,10 +1,25 @@
+local function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 --- Converts the region defined by positions `pos1` and `pos2`
 -- into a single string.
 -- @return The serialized data.
 -- @return The number of nodes serialized.
 function schemlib.serialize(pos1, pos2)
-    pos1, pos2 = schemlib.sort_pos(pos1, pos2)
-    schemlib.keep_loaded(pos1, pos2)
+    pos1, pos2 = schemlib.common.sort_pos(pos1, pos2)
+    schemlib.common.keep_loaded(pos1, pos2)
 
     local get_node, get_meta, hash_node_position = minetest.get_node, minetest.get_meta, minetest.hash_node_position
 
@@ -100,7 +115,7 @@ local function load_json_schematic(value)
 end
 
 -- Internal
-function allocate_with_nodes(origin_pos, nodes)
+local function allocate_with_nodes(origin_pos, nodes)
     local huge = math.huge
     local pos1x, pos1y, pos1z = huge, huge, huge
     local pos2x, pos2y, pos2z = -huge, -huge, -huge
@@ -181,15 +196,15 @@ function schemlib.process_emitted(origin_pos, value, obj, moveObj)
 
     minetest.emerge_area(pos1, pos2, function(blockpos, action, calls_remaining, param)
         if calls_remaining == 0 then
-            local manip, area = schemlib.keep_loaded(pos1, pos2)
+            local manip, area = schemlib.common.keep_loaded(pos1, pos2)
 
             load_to_map(origin_pos, obj)
 
             if moveObj then
-                schemlib.jump_ship_emit_player(obj.meta, false)
+                schemlib.func.jump_ship_emit_player(obj.meta, false)
                 minetest.after(2, function()
-                    schemlib.jump_ship_move_contents(obj.meta)
-                    -- schemlib.jump_ship_emit_player(obj.meta, true)
+                    schemlib.func.jump_ship_move_contents(obj.meta)
+                    -- schemlib.func.jump_ship_emit_player(obj.meta, true)
                 end)
             end
         end

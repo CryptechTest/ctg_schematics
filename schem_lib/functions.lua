@@ -1,6 +1,8 @@
-function schemlib.clear_position(pos1, pos2)
-    -- schemlib.keep_loaded(pos1, pos2)
-    pos1, pos2 = schemlib.sort_pos(pos1, pos2)
+-- functions
+schemlib.func = {}
+
+function schemlib.func.clear_position(pos1, pos2)
+    pos1, pos2 = schemlib.common.sort_pos(pos1, pos2)
     local pos = {
         x = pos1.x,
         y = 0,
@@ -29,21 +31,6 @@ function schemlib.clear_position(pos1, pos2)
         pos.x = pos.x + 1
     end
     return count
-end
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
 end
 
 local square = math.sqrt;
@@ -161,7 +148,7 @@ local function do_particle_zap(pos, amount)
     })
 end
 
-function schemlib.jump_ship_move_contents(lmeta)
+function schemlib.func.jump_ship_move_contents(lmeta)
     local pos = lmeta.origin
     local dest = lmeta.dest
     local dist_travel = get_distance(pos, dest)
@@ -247,7 +234,7 @@ function schemlib.jump_ship_move_contents(lmeta)
     return dist_travel
 end
 
-function schemlib.jump_ship_emit_player(lmeta, arriving)
+function schemlib.func.jump_ship_emit_player(lmeta, arriving)
     local pos = lmeta.origin
     local dest = lmeta.dest
     local dist_travel = get_distance(pos, dest)
@@ -324,16 +311,7 @@ local function emerge_callback(pos, action, num_calls_remaining, context)
     end
 end
 
-local BLOCKSIZE = minetest.MAP_BLOCKSIZE
-local function get_blockpos(pos)
-    return {
-        x = math.floor(pos.x / BLOCKSIZE),
-        y = math.floor(pos.y / BLOCKSIZE),
-        z = math.floor(pos.z / BLOCKSIZE)
-    }
-end
-
-function schemlib.check_dest_clear(pos, dest, size)
+function schemlib.func.check_dest_clear(pos, dest, size)
 
     local pos1 = vector.subtract(dest, {
         x = size.w,
