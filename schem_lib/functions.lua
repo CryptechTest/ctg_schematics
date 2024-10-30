@@ -440,7 +440,7 @@ function schemlib.func.find_nodes_large(origin, size, search, options)
     local rem = size % 79
     local xnodes = {}
     for i, rule in pairs(dist_rules2) do
-        local rs = vector.multiply(rule, (i == 0 and 80) or rem)
+        local rs = vector.multiply(rule, (i == 0 and 80) or (80 + rem * 2))
         local pos = vector.add(origin_offset, rs)
         local fnodes = find_nodes(pos, 79, search)
         for _, n in pairs(fnodes) do
