@@ -373,3 +373,93 @@ function schemlib.func.check_dest_clear(pos, dest, size)
 
     return false
 end
+
+
+local function find_nodes(pos, r, search)
+    local nodes = minetest.find_nodes_in_area({
+        x = pos.x - r,
+        y = pos.y - r,
+        z = pos.z - r
+    }, {
+        x = pos.x + r,
+        y = pos.y + r,
+        z = pos.z + r
+    }, search)
+    return nodes
+end
+
+local dist_rules = {
+    {x= 0,y= 0,z= 0}, -- center point
+    {x= 1,y= 0,z= 0},{x=-1,y= 0,z= 0}, -- along x beside
+    {x= 0,y= 0,z= 1},{x= 0,y= 0,z=-1}, -- along z beside
+    {x= 0,y= 1,z= 0},{x= 0,y=-1,z= 0}, -- along y above/below
+    {x= 1,y= 1,z= 0},{x=-1,y= 1,z= 0}, -- 1 node above along x diagonal
+    {x= 0,y= 1,z= 1},{x= 0,y= 1,z=-1}, -- 1 node above along z diagonal
+    {x= 1,y=-1,z= 0},{x=-1,y=-1,z= 0}, -- 1 node below along x diagonal
+    {x= 0,y=-1,z= 1},{x= 0,y=-1,z=-1}, -- 1 node below along z diagonal
+
+    {x= 1,y= 0,z= 1},{x=-1,y= 0,z= 1}, -- corners beside
+    {x= 1,y= 0,z=-1},{x=-1,y= 0,z=-1}, -- corners beside
+
+    {x= 1,y= 1,z= 1},{x=-1,y= 1,z= 1}, -- corners above
+    {x=-1,y= 1,z=-1},{x= 1,y= 1,z=-1}, -- corners above
+    {x= 1,y=-1,z=-1},{x=-1,y=-1,z= 1}, -- corners below
+    {x=-1,y=-1,z=-1},{x= 1,y=-1,z= 1}, -- corners below
+}
+
+local dist_rules2 = {
+    {x= 0,y= 0,z= 0}, -- center point
+    {x= 1,y= 0,z= 0},{x=-1,y= 0,z= 0}, -- along x beside
+    {x= 0,y= 0,z= 1},{x= 0,y= 0,z=-1}, -- along z beside
+    {x= 0,y= 1,z= 0},{x= 0,y=-1,z= 0}, -- along y above/below
+    {x= 1,y= 1,z= 0},{x=-1,y= 1,z= 0}, -- 1 node above along x diagonal
+    {x= 0,y= 1,z= 1},{x= 0,y= 1,z=-1}, -- 1 node above along z diagonal
+    {x= 1,y=-1,z= 0},{x=-1,y=-1,z= 0}, -- 1 node below along x diagonal
+    {x= 0,y=-1,z= 1},{x= 0,y=-1,z=-1}, -- 1 node below along z diagonal
+}
+
+function schemlib.func.find_nodes_large(origin, size, search, options)
+    local limit = (options and options.limit) or 1
+    local dir = (options and options.dir) or {x = 0, y = 0, z = 0}
+    local origin_offset = vector.add(origin, vector.multiply(dir, 80))
+    if size < 80 then
+        local xnodes = find_nodes(origin_offset, size, search)
+        local nodes = {}
+        for _, n in pairs(xnodes) do
+            local dist = vector.distance(origin, n)
+            if dist <= size then
+                table.insert(nodes, {node = n, dist = dist})
+            end
+        end
+        local function compare(a,b)
+            return a.dist < b.dist
+        end
+        table.sort(nodes, compare)
+        return nodes
+    end
+    local rem = size % 79
+    local xnodes = {}
+    for i, rule in pairs(dist_rules2) do
+        local rs = vector.multiply(rule, (i == 0 and 80) or rem)
+        local pos = vector.add(origin_offset, rs)
+        local fnodes = find_nodes(pos, 79, search)
+        for _, n in pairs(fnodes) do
+            table.insert(xnodes, n)
+        end
+        if #fnodes >= limit then
+            break;
+        end
+    end
+    local nodes = {}
+    for _, n in pairs(xnodes) do
+        local dist = vector.distance(origin, n)
+        if dist <= size then
+            table.insert(nodes, {pos = n, dist = dist})
+        end
+    end
+    local function compare(a,b)
+        return a.dist < b.dist
+      end
+    table.sort(nodes, compare)
+    return nodes
+end
