@@ -37,7 +37,10 @@ function schemlib.emit(data, flags)
     end
 
     if flags.origin_clear and flags.origin_clear == true then
-        minetest.after(15, function()
+        minetest.after(10, function()
+            schemlib.func.clear_position(pos1, pos2)
+        end)
+        minetest.after(30, function()
             schemlib.func.clear_position(pos1, pos2)
         end)
     end
