@@ -14,10 +14,10 @@ function schemlib.emit(data, flags)
         y = data.h,
         z = data.l
     })
-    data.offset = {}
-    data.offset.x = data.w
-    data.offset.y = data.h
-    data.offset.z = data.l
+    data.offset = data.offset or {}
+    data.offset.x = data.offset.x or data.w
+    data.offset.y = data.offset.y or data.h
+    data.offset.z = data.offset.z or data.l
 
     local sdata, count = {}, 0
     if flags.file_cache then
