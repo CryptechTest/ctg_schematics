@@ -226,7 +226,17 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
                     do_particle_zap(new_pos, 2)
                 end)
             else
-                obj:set_pos(new_pos)
+                local ent = obj:get_luaentity()
+                local rem = false
+                if ent then
+                    if ent.name == "digiterms:screen" then
+                        obj:remove()
+                        rem = true
+                    end
+                end
+                if not rem then
+                    obj:set_pos(new_pos)
+                end
             end
         end
     end
