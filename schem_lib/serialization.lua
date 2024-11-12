@@ -17,9 +17,9 @@ end
 -- into a single string.
 -- @return The serialized data.
 -- @return The number of nodes serialized.
-function schemlib.serialize(pos1, pos2)
-    pos1, pos2 = schemlib.common.sort_pos(pos1, pos2)
-    schemlib.common.keep_loaded(pos1, pos2)
+function schem_lib.serialize(pos1, pos2)
+    pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
+    schem_lib.common.keep_loaded(pos1, pos2)
 
     local get_node, get_meta, hash_node_position = minetest.get_node, minetest.get_meta, minetest.hash_node_position
 
@@ -82,11 +82,11 @@ function schemlib.serialize(pos1, pos2)
     return deepcopy(result), count
 end
 
-function schemlib.serialize_table(head, flags, pos1, pos2)
-    local result, count = schemlib.serialize(pos1, pos2)
+function schem_lib.serialize_table(head, flags, pos1, pos2)
+    local result, count = schem_lib.serialize(pos1, pos2)
     -- Serialize entries
-    local json_header = schemlib.get_serialized_header(head, count)
-    local json_flags = schemlib.get_serialized_flags(flags)
+    local json_header = schem_lib.get_serialized_header(head, count)
+    local json_flags = schem_lib.get_serialized_flags(flags)
     local table = {}
     local header = minetest.parse_json("{" .. json_header .. "}")
     table.meta = header.meta
@@ -95,13 +95,13 @@ function schemlib.serialize_table(head, flags, pos1, pos2)
     return table, count
 end
 
-function schemlib.serialize_json(head, flags, pos1, pos2)
-    local result, count = schemlib.serialize(pos1, pos2)
+function schem_lib.serialize_json(head, flags, pos1, pos2)
+    local result, count = schem_lib.serialize(pos1, pos2)
     -- Serialize entries
     local json_result = minetest.write_json(result)
-    local json_header = schemlib.get_serialized_header(head, count)
-    local json_flags = schemlib.get_serialized_flags(flags)
-    local json_str = schemlib.format_result_json(json_header, json_flags, json_result)
+    local json_header = schem_lib.get_serialized_header(head, count)
+    local json_flags = schem_lib.get_serialized_flags(flags)
+    local json_str = schem_lib.format_result_json(json_header, json_flags, json_result)
     return json_str, count
 end
 
@@ -173,7 +173,7 @@ end
 
 --- Loads the nodes represented by string `value` at position `origin_pos`.
 -- @return The number of nodes deserialized.
-function schemlib.process_emitted(origin_pos, value, obj, moveObj)
+function schem_lib.process_emitted(origin_pos, value, obj, moveObj)
     -- minetest.log(">>> Loading Emitted...")
     if obj == nil then
         obj = load_json_schematic(value)
@@ -196,15 +196,15 @@ function schemlib.process_emitted(origin_pos, value, obj, moveObj)
 
     minetest.emerge_area(pos1, pos2, function(blockpos, action, calls_remaining, param)
         if calls_remaining == 0 then
-            local manip, area = schemlib.common.keep_loaded(pos1, pos2)
+            local manip, area = schem_lib.common.keep_loaded(pos1, pos2)
 
             load_to_map(origin_pos, obj)
 
             if moveObj then
-                schemlib.func.jump_ship_emit_player(obj.meta, false)
+                schem_lib.func.jump_ship_emit_player(obj.meta, false)
                 minetest.after(2, function()
-                    schemlib.func.jump_ship_move_contents(obj.meta)
-                    -- schemlib.func.jump_ship_emit_player(obj.meta, true)
+                    schem_lib.func.jump_ship_move_contents(obj.meta)
+                    -- schem_lib.func.jump_ship_emit_player(obj.meta, true)
                 end)
             end
         end

@@ -1,9 +1,9 @@
 local extension = ".mtx"
-local STOR_DIR = "schemlib"
+local STOR_DIR = "schem_lib"
 local world_path = minetest.get_worldpath()
 
 -- Save to file
-function schemlib.emit(data, flags)
+function schem_lib.emit(data, flags)
     local pos1 = vector.subtract(data.origin, {
         x = data.w,
         y = data.h,
@@ -21,9 +21,9 @@ function schemlib.emit(data, flags)
 
     local sdata, count = {}, 0
     if flags.file_cache then
-        sdata, count = schemlib.serialize_json(data, flags, pos1, pos2)
+        sdata, count = schem_lib.serialize_json(data, flags, pos1, pos2)
     else
-        sdata, count = schemlib.serialize_table(data, flags, pos1, pos2)
+        sdata, count = schem_lib.serialize_table(data, flags, pos1, pos2)
     end
 
     if flags.file_cache and flags.file_cache == true then
@@ -38,10 +38,10 @@ function schemlib.emit(data, flags)
 
     if flags.origin_clear and flags.origin_clear == true then
         minetest.after(10, function()
-            schemlib.func.clear_position(pos1, pos2)
+            schem_lib.func.clear_position(pos1, pos2)
         end)
         minetest.after(30, function()
-            schemlib.func.clear_position(pos1, pos2)
+            schem_lib.func.clear_position(pos1, pos2)
         end)
     end
 
@@ -49,12 +49,12 @@ function schemlib.emit(data, flags)
 end
 
 -- Load from file using any directory
-function schemlib.load_emitted(data)
+function schem_lib.load_emitted(data)
     local path = world_path .. "/" .. STOR_DIR
     local filename = path .. "/" .. data.filename
     local file = io.open(filename .. extension, "r")
     if file then
-        local count, ver, meta = schemlib.process_emitted(data.origin, file:read("*all"), nil, data.moveObj)
+        local count, ver, meta = schem_lib.process_emitted(data.origin, file:read("*all"), nil, data.moveObj)
         file:close()
         return meta
     end
@@ -62,7 +62,7 @@ function schemlib.load_emitted(data)
 end
 
 -- Load from file using world directory
-function schemlib.load_emitted_file(data)
+function schem_lib.load_emitted_file(data)
     minetest.log(">>>> loading " .. data.filename)
     local file = io.open(data.filepath .. data.filename .. extension, "r")
     local content = ""
@@ -82,7 +82,7 @@ function schemlib.load_emitted_file(data)
     end
     -- local content = file:read("*all")
     minetest.log(">>>> File Loaded " .. data.filename)
-    local count, ver, meta = schemlib.process_emitted(data.origin, content, nil, data.moveObj)
+    local count, ver, meta = schem_lib.process_emitted(data.origin, content, nil, data.moveObj)
 
     minetest.log(">>> Emitted Load " .. data.filename)
     return meta

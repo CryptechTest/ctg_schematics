@@ -1,8 +1,8 @@
 -- functions
-schemlib.func = {}
+schem_lib.func = {}
 
-function schemlib.func.clear_position(pos1, pos2)
-    pos1, pos2 = schemlib.common.sort_pos(pos1, pos2)
+function schem_lib.func.clear_position(pos1, pos2)
+    pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
     local pos = {
         x = pos1.x,
         y = 0,
@@ -148,7 +148,7 @@ local function do_particle_zap(pos, amount)
     })
 end
 
-function schemlib.func.jump_ship_move_contents(lmeta)
+function schem_lib.func.jump_ship_move_contents(lmeta)
     local pos = lmeta.origin
     local dest = lmeta.dest
     local dist_travel = get_distance(pos, dest)
@@ -234,7 +234,7 @@ function schemlib.func.jump_ship_move_contents(lmeta)
     return dist_travel
 end
 
-function schemlib.func.jump_ship_emit_player(lmeta, arriving)
+function schem_lib.func.jump_ship_emit_player(lmeta, arriving)
     local pos = lmeta.origin
     local dest = lmeta.dest
     local dist_travel = get_distance(pos, dest)
@@ -311,7 +311,7 @@ local function emerge_callback(pos, action, num_calls_remaining, context)
     end
 end
 
-function schemlib.func.check_dest_clear(pos, dest, size)
+function schem_lib.func.check_dest_clear(pos, dest, size)
 
     local pos1 = vector.subtract(dest, {
         x = size.w,
@@ -418,7 +418,7 @@ local dist_rules2 = {
     {x= 0,y=-1,z= 1},{x= 0,y=-1,z=-1}, -- 1 node below along z diagonal
 }
 
-function schemlib.func.find_nodes_large(origin, size, search, options)
+function schem_lib.func.find_nodes_large(origin, size, search, options)
     local limit = (options and options.limit) or 1
     local dir = (options and options.dir) or {x = 0, y = 0, z = 0}
     local origin_offset = vector.add(origin, vector.multiply(dir, 80))

@@ -1,9 +1,9 @@
-schemlib.LATEST_SERIALIZATION_VERSION = 6
-local LATEST_SERIALIZATION_HEADER = "\"version\":" .. schemlib.LATEST_SERIALIZATION_VERSION
+schem_lib.LATEST_SERIALIZATION_VERSION = 6
+local LATEST_SERIALIZATION_HEADER = "\"version\":" .. schem_lib.LATEST_SERIALIZATION_VERSION
 local SERIALIZATION_FORMAT = "\"format\":" .. "\"json\""
 local SERIALIZATION_TYPE = "\"type\":" .. "\"schematic.ctg\""
 
-function schemlib.get_serialized_header(head, count)
+function schem_lib.get_serialized_header(head, count)
     local timestamp = "\"timestamp\":" .. os.time()
     local count = "\"count\":" .. count
     local offset = "\"offset\":" .. minetest.write_json(head.offset)
@@ -28,7 +28,7 @@ function schemlib.get_serialized_header(head, count)
     return header
 end
 
-function schemlib.get_serialized_flags(flags)
+function schem_lib.get_serialized_flags(flags)
     local use_inv = "\"keep_inv\":" .. tostring(flags.keep_inv)
     local use_meta = "\"keep_meta\":" .. tostring(flags.keep_meta)
     local origin_clear = "\"origin_clear\":" .. tostring(flags.origin_clear)
@@ -39,7 +39,7 @@ function schemlib.get_serialized_flags(flags)
     return key .. value
 end
 
-function schemlib.format_result_json(json_header, json_flags, result)
+function schem_lib.format_result_json(json_header, json_flags, result)
     local json_result = "\"cuboid\":" .. result
     local json_str = "{" .. json_header .. "," .. json_flags .. "," .. json_result .. "}"
     return json_str

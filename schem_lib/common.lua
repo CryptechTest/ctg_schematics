@@ -1,10 +1,10 @@
 -- common access functions
-schemlib.common = {}
+schem_lib.common = {}
 
 --- Copies and modifies positions `pos1` and `pos2` so that each component of
 -- `pos1` is less than or equal to the corresponding component of `pos2`.
 -- Returns the new positions.
-function schemlib.common.sort_pos(pos1, pos2)
+function schem_lib.common.sort_pos(pos1, pos2)
     pos1 = {
         x = pos1.x,
         y = pos1.y,
@@ -27,7 +27,7 @@ function schemlib.common.sort_pos(pos1, pos2)
     return pos1, pos2
 end
 
-function schemlib.common.keep_loaded(pos1, pos2)
+function schem_lib.common.keep_loaded(pos1, pos2)
     -- Create a vmanip and read the area from map, this
     -- causes all MapBlocks to be loaded into memory.
     -- This doesn't actually *keep* them loaded, unlike the name implies.
