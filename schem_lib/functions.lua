@@ -248,32 +248,15 @@ function schem_lib.func.jump_ship_emit_player(lmeta, arriving)
     local pos = lmeta.origin
     local dest = lmeta.dest
     local dist_travel = get_distance(pos, dest)
-    local dist_x = 0
-    local dist_y = 0
-    local dist_z = 0
 
-    if pos.x >= dest.x then
-        dist_x = -(pos.x - dest.x)
-    elseif pos.x < dest.x then
-        dist_x = dest.x - pos.x
-    end
-    if pos.y >= dest.y then
-        dist_y = -(pos.y - dest.y)
-    elseif pos.y < dest.y then
-        dist_y = dest.y - pos.y
-    end
-    if pos.z >= dest.z then
-        dist_z = -(pos.z - dest.z)
-    elseif pos.z < dest.z then
-        dist_z = dest.z - pos.z
-    end
+    local _pos = not arriving and pos or dest
 
-    local pos1 = vector.subtract(pos, {
+    local pos1 = vector.subtract(_pos, {
         x = lmeta.offset.x,
         y = lmeta.offset.y,
         z = lmeta.offset.z
     })
-    local pos2 = vector.add(pos, {
+    local pos2 = vector.add(_pos, {
         x = lmeta.offset.x,
         y = lmeta.offset.y,
         z = lmeta.offset.z
@@ -283,17 +266,15 @@ function schem_lib.func.jump_ship_emit_player(lmeta, arriving)
     local objects = minetest.get_objects_in_area(pos1, pos2) or {}
     for _, obj in pairs(objects) do
         if obj then
-            local new_pos = vector.add(obj:get_pos(), {
-                x = dist_x,
-                y = dist_y,
-                z = dist_z
-            })
             if obj:is_player() then
                 local player = minetest.get_player_by_name(obj:get_player_name())
-
-                player:set_physics_override({
-                    gravity = 0
-                })
+                if not arriving then
+                    player:set_physics_override({
+                        gravity = 0
+                    })
+                else
+                    otherworlds.gravity.reset(player)
+                end
             end
         end
     end
