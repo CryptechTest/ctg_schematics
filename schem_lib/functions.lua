@@ -1,6 +1,27 @@
 -- functions
 schem_lib.func = {}
 
+-- get static spawn position
+local statspawn = minetest.string_to_pos(minetest.settings:get("static_spawnpoint")) or {
+    x = 0,
+    y = 2,
+    z = 0
+}
+-- spawn protection
+local protector_spawn = tonumber(minetest.settings:get("protector_spawn")) or 250
+
+-- check if pos is inside a protected spawn area
+local inside_spawn = function(pos, radius)
+    if protector_spawn <= 0 then
+        return false
+    end
+    if pos.x < statspawn.x + radius and pos.x > statspawn.x - radius and pos.y < statspawn.y + radius and pos.y >
+        statspawn.y - radius and pos.z < statspawn.z + radius and pos.z > statspawn.z - radius then
+        return true
+    end
+    return false
+end
+
 function schem_lib.func.clear_position(pos1, pos2)
     pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
     local pos = {
@@ -314,6 +335,18 @@ function schem_lib.func.check_dest_clear(pos, dest, size)
         y = size.h,
         z = size.l
     })
+
+    for z = pos1.z, pos2.z do
+        for y = pos1.y, pos2.y do
+            for x = pos1.x, pos2.x do
+                local p = vector.new(x, y, z)
+                -- is spawn area protected ?
+                if inside_spawn(p, protector_spawn) then
+                    return false
+                end
+            end
+        end
+    end
 
     local c_vacuum = minetest.get_content_id("vacuum:vacuum")
     local c_atmos = minetest.get_content_id("vacuum:atmos_thin")
