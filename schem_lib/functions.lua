@@ -24,33 +24,28 @@ end
 
 function schem_lib.func.clear_position(pos1, pos2)
     pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
-    local pos = {
-        x = pos1.x,
-        y = 0,
-        z = 0
-    }
     local count = 0
-    local result = {}
-    while pos.x <= pos2.x do
-        pos.y = pos1.y
-        while pos.y <= pos2.y do
-            pos.z = pos1.z
-            while pos.z <= pos2.z do
-                local node = minetest.get_node(pos)
-                if node.name ~= "vacuum:vacuum" and node.name ~= "ignore" then
+    local c_vaccuum = minetest.get_content_id("vacuum:vacuum")
+    local c_ignore = minetest.get_content_id("ignore")
+    local vm = VoxelManip(pos1, pos2)
+    local pmin, pmax= vm:read_from_map(pos1, pos2)
+    local area = VoxelArea:new({MinEdge = pmin, MaxEdge = pmax})
+    local data = vm:get_data()
+
+    for z = pos1.z, pos2.z do
+        for y = pos1.y, pos2.y do
+            for x = pos1.x, pos2.x do
+
+                local index = area:index(x, y, z)
+                if data[index] ~= c_ignore then
+                    data[index] = c_vaccuum
                     count = count + 1
-
-                    minetest.set_node(pos, {
-                        name = "vacuum:vacuum"
-                    })
-
                 end
-                pos.z = pos.z + 1
             end
-            pos.y = pos.y + 1
         end
-        pos.x = pos.x + 1
     end
+    vm:set_data(data)
+    vm:write_to_map()
     return count
 end
 
