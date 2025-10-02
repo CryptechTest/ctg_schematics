@@ -158,15 +158,16 @@ local function load_to_map(origin_pos, obj)
     local nodes = obj.cuboid
     local o = obj.meta.offset
     local origin_x, origin_y, origin_z = origin_pos.x, origin_pos.y, origin_pos.z
-    local add_node, get_meta = minetest.add_node, minetest.get_meta
+    local add_node, get_meta, get_node = core.add_node, core.get_meta, core.get_node
     -- local data = manip:get_data()
     for i, entry in ipairs(nodes) do
         entry.x, entry.y, entry.z = origin_x + (entry.x - o.x), origin_y + (entry.y - o.y), origin_z + (entry.z - o.z)
-        -- Entry acts as both position and node
-        add_node(entry, entry)
-
-        if entry.meta then
-            get_meta(entry):from_table(entry.meta)
+        if core.registered_nodes[entry.name] ~= nil then
+            -- Entry acts as both position and node
+            add_node(entry, entry)
+            if entry.meta then
+                get_meta(entry):from_table(entry.meta)
+            end
         end
     end
 end
