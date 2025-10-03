@@ -165,7 +165,7 @@ local function do_particle_zap(pos, amount)
 end
 
 function schem_lib.func.update_screens(pos1, pos2)
-    if not minetest.get_modpath("digiterms") then
+    if core.get_modpath("digiterms") == nil then
         return
     end
     local screens = core.find_nodes_in_area(pos1, pos2, "group:display_api")
