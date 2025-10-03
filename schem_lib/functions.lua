@@ -164,6 +164,26 @@ local function do_particle_zap(pos, amount)
     })
 end
 
+function schem_lib.func.update_screens(pos1, pos2)
+    if not minetest.get_modpath("digiterms") then
+        return
+    end
+    local screens = core.find_nodes_in_area(pos1, pos2, "group:display_api")
+    if screens == nil or #screens == 0 then
+        return
+    end
+    for _, scrnpos in pairs(screens) do
+        local node = core.get_node(scrnpos)
+        if node ~= nil then
+            local meta = core.get_meta(scrnpos)
+            local msg = meta and meta:get_string("display_text") or nil
+            if msg then
+                digiterms.push_text_on_screen(scrnpos, msg)
+            end
+        end
+    end
+end
+
 function schem_lib.func.jump_ship_move_contents(lmeta)
     local pos = lmeta.origin
     local dest = lmeta.dest
@@ -246,6 +266,9 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
                 local rem = false
                 if ent then
                     if ent.name == "digiterms:screen" then
+                        obj:remove()
+                        rem = true
+                    elseif ent.name == "3d_armor_stand:armor_entity" then
                         obj:remove()
                         rem = true
                     end

@@ -21,11 +21,11 @@ function schem_lib.serialize(pos1, pos2)
     pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
     schem_lib.common.keep_loaded(pos1, pos2)
 
-    local get_node, get_meta, hash_node_position = minetest.get_node, minetest.get_meta, minetest.hash_node_position
+    local get_node, get_meta, hash_node_position, get_node_timer = core.get_node, core.get_meta, core.hash_node_position, core.get_node_timer
 
     -- Find the positions which have metadata
     local has_meta = {}
-    local meta_positions = minetest.find_nodes_with_meta(pos1, pos2)
+    local meta_positions = core.find_nodes_with_meta(pos1, pos2)
     for i = 1, #meta_positions do
         has_meta[hash_node_position(meta_positions[i])] = true
     end
@@ -43,7 +43,7 @@ function schem_lib.serialize(pos1, pos2)
             pos.z = pos1.z
             while pos.z <= pos2.z do
                 local node = get_node(pos)
-                if minetest.registered_nodes[node.name] == nil then
+                if core.registered_nodes[node.name] == nil then
                     -- ignore
                 elseif node.name ~= "ignore" and node.name ~= "vacuum:vacuum" and node.name ~= "asteroid:atmos" then
                     count = count + 1
@@ -63,6 +63,17 @@ function schem_lib.serialize(pos1, pos2)
                         end
                     end
 
+                    local timer
+                    if core.registered_nodes[node.name].on_timer ~= nil then
+                        local on_timer = get_node_timer(pos)
+                        -- convert node_timer userdata to storage object
+                        timer = {
+                            timeout = on_timer:get_timeout(),
+                            elapsed = on_timer:get_elapsed(),
+                            started = on_timer:is_started()
+                        }
+                    end
+
                     result[count] = {
                         x = pos.x - pos1.x,
                         y = pos.y - pos1.y,
@@ -70,7 +81,8 @@ function schem_lib.serialize(pos1, pos2)
                         name = node.name,
                         param1 = node.param1 ~= 0 and node.param1 or nil,
                         param2 = node.param2 ~= 0 and node.param2 or nil,
-                        meta = meta
+                        meta = meta,
+                        timer = timer
                     }
                 end
                 pos.z = pos.z + 1
@@ -88,9 +100,9 @@ function schem_lib.serialize_table(head, flags, pos1, pos2)
     local json_header = schem_lib.get_serialized_header(head, count)
     local json_flags = schem_lib.get_serialized_flags(flags)
     local table = {}
-    local header = minetest.parse_json("{" .. json_header .. "}")
+    local header = core.parse_json("{" .. json_header .. "}")
     table.meta = header.meta
-    table.flags = minetest.parse_json(json_flags)
+    table.flags = core.parse_json(json_flags)
     table.cuboid = result
     return table, count
 end
@@ -98,7 +110,7 @@ end
 function schem_lib.serialize_json(head, flags, pos1, pos2)
     local result, count = schem_lib.serialize(pos1, pos2)
     -- Serialize entries
-    local json_result = minetest.write_json(result)
+    local json_result = core.write_json(result)
     local json_header = schem_lib.get_serialized_header(head, count)
     local json_flags = schem_lib.get_serialized_flags(flags)
     local json_str = schem_lib.format_result_json(json_header, json_flags, json_result)
@@ -108,7 +120,7 @@ end
 local function load_json_schematic(value)
     local obj = {}
     if value then
-        obj = minetest.parse_json(value)
+        obj = core.parse_json(value)
         return obj
     end
     return obj
@@ -158,7 +170,7 @@ local function load_to_map(origin_pos, obj)
     local nodes = obj.cuboid
     local o = obj.meta.offset
     local origin_x, origin_y, origin_z = origin_pos.x, origin_pos.y, origin_pos.z
-    local add_node, get_meta, get_node = core.add_node, core.get_meta, core.get_node
+    local add_node, get_meta, get_node, get_node_timer = core.add_node, core.get_meta, core.get_node, core.get_node_timer
     -- local data = manip:get_data()
     for i, entry in ipairs(nodes) do
         entry.x, entry.y, entry.z = origin_x + (entry.x - o.x), origin_y + (entry.y - o.y), origin_z + (entry.z - o.z)
@@ -166,7 +178,13 @@ local function load_to_map(origin_pos, obj)
             -- Entry acts as both position and node
             add_node(entry, entry)
             if entry.meta then
-                get_meta(entry):from_table(entry.meta)
+                get_meta(entry):from_table(entry.meta) 
+            end
+            if entry.timer then
+                get_node_timer(entry):set(entry.timer.timeout, entry.timer.elapsed)
+                if not entry.timer.started then
+                    get_node_timer(entry):stop()
+                end
             end
         end
     end
@@ -175,7 +193,7 @@ end
 --- Loads the nodes represented by string `value` at position `origin_pos`.
 -- @return The number of nodes deserialized.
 function schem_lib.process_emitted(origin_pos, value, obj, moveObj)
-    -- minetest.log(">>> Loading Emitted...")
+    -- core.log(">>> Loading Emitted...")
     if obj == nil then
         obj = load_json_schematic(value)
     end
@@ -191,19 +209,23 @@ function schem_lib.process_emitted(origin_pos, value, obj, moveObj)
         origin_pos = obj.meta.dest
     end
 
-    -- minetest.log(">>> Emerging Emitted...")
+    -- core.log(">>> Emerging Emitted...")
 
     local pos1, pos2 = allocate_with_nodes(origin_pos, nodes)
 
-    minetest.emerge_area(pos1, pos2, function(blockpos, action, calls_remaining, param)
+    core.emerge_area(pos1, pos2, function(blockpos, action, calls_remaining, param)
         if calls_remaining == 0 then
             local manip, area = schem_lib.common.keep_loaded(pos1, pos2)
 
             load_to_map(origin_pos, obj)
 
+            core.after(0, function()
+                schem_lib.func.update_screens(pos1, pos2)    
+            end)
+
             if moveObj then
                 schem_lib.func.jump_ship_emit_player(obj.meta, false)
-                minetest.after(2, function()
+                core.after(2, function()
                     schem_lib.func.jump_ship_move_contents(obj.meta)
                     -- schem_lib.func.jump_ship_emit_player(obj.meta, true)
                 end)

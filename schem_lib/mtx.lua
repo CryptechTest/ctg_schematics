@@ -1,4 +1,4 @@
-schem_lib.LATEST_SERIALIZATION_VERSION = 6
+schem_lib.LATEST_SERIALIZATION_VERSION = 7
 local LATEST_SERIALIZATION_HEADER = "\"version\":" .. schem_lib.LATEST_SERIALIZATION_VERSION
 local SERIALIZATION_FORMAT = "\"format\":" .. "\"json\""
 local SERIALIZATION_TYPE = "\"type\":" .. "\"schematic.ctg\""
