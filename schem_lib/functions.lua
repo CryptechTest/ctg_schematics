@@ -164,6 +164,8 @@ local function do_particle_zap(pos, amount)
     })
 end
 
+schem_lib.func.do_particle_zap = do_particle_zap
+
 function schem_lib.func.update_screens(pos1, pos2)
     if core.get_modpath("digiterms") == nil then
         return
