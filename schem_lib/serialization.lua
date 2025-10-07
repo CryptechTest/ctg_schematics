@@ -192,12 +192,15 @@ end
 
 --- Loads the nodes represented by string `value` at position `origin_pos`.
 -- @return The number of nodes deserialized.
-function schem_lib.process_emitted(origin_pos, value, obj, moveObj)
-    -- core.log(">>> Loading Emitted...")
-    if obj == nil then
-        obj = load_json_schematic(value)
+function schem_lib.process_emitted(origin_pos, obj_json, obj_table, moveObj)
+    if obj_json == nil and obj_table == nil then
+        return nil
     end
-    local nodes = obj.cuboid
+    -- core.log(">>> Loading Emitted...")
+    if obj_table == nil then
+        obj_table = load_json_schematic(obj_json)
+    end
+    local nodes = obj_table.cuboid
     if not nodes then
         return nil
     end
@@ -206,32 +209,35 @@ function schem_lib.process_emitted(origin_pos, value, obj, moveObj)
     end
 
     if not origin_pos or origin_pos == nil then
-        origin_pos = obj.meta.dest
+        origin_pos = obj_table.meta.dest
     end
 
     -- core.log(">>> Emerging Emitted...")
 
     local pos1, pos2 = allocate_with_nodes(origin_pos, nodes)
 
-    core.emerge_area(pos1, pos2, function(blockpos, action, calls_remaining, param)
+    local function emerge_area_callback_complete(blockpos, action, calls_remaining, param)
         if calls_remaining == 0 then
             local manip, area = schem_lib.common.keep_loaded(pos1, pos2)
 
-            load_to_map(origin_pos, obj)
+            load_to_map(origin_pos, obj_table)
 
             core.after(0, function()
                 schem_lib.func.update_screens(pos1, pos2)    
             end)
 
             if moveObj then
-                schem_lib.func.jump_ship_emit_player(obj.meta, false)
+                schem_lib.func.jump_ship_emit_player(obj_table.meta, false)
                 core.after(2, function()
-                    schem_lib.func.jump_ship_move_contents(obj.meta)
+                    schem_lib.func.jump_ship_move_contents(obj_table.meta)
                     -- schem_lib.func.jump_ship_emit_player(obj.meta, true)
                 end)
             end
         end
-    end)
+    end
 
-    return #nodes, obj.version, obj.meta
+    -- load area
+    core.emerge_area(pos1, pos2, emerge_area_callback_complete)
+
+    return #nodes, obj_table.version, obj_table.meta
 end

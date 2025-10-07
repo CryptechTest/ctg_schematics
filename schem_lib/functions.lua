@@ -2,13 +2,13 @@
 schem_lib.func = {}
 
 -- get static spawn position
-local statspawn = minetest.string_to_pos(minetest.settings:get("static_spawnpoint")) or {
+local statspawn = core.string_to_pos(core.settings:get("static_spawnpoint")) or {
     x = 0,
     y = 2,
     z = 0
 }
 -- spawn protection
-local protector_spawn = tonumber(minetest.settings:get("protector_spawn")) or 250
+local protector_spawn = tonumber(core.settings:get("protector_spawn")) or 250
 
 -- check if pos is inside a protected spawn area
 local inside_spawn = function(pos, radius)
@@ -25,8 +25,8 @@ end
 function schem_lib.func.clear_position(pos1, pos2)
     pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
     local count = 0
-    local c_vaccuum = minetest.get_content_id("vacuum:vacuum")
-    local c_ignore = minetest.get_content_id("ignore")
+    local c_vaccuum = core.get_content_id("vacuum:vacuum")
+    local c_ignore = core.get_content_id("ignore")
     local vm = VoxelManip(pos1, pos2)
     local pmin, pmax= vm:read_from_map(pos1, pos2)
     local area = VoxelArea:new({MinEdge = pmin, MaxEdge = pmax})
@@ -80,7 +80,7 @@ local function do_particles(pos)
         texture = prt.texture_r180
     end
     local v = vector.new()
-    minetest.add_particle({
+    core.add_particle({
         pos = exm,
         velocity = {
             x = rx,
@@ -118,7 +118,7 @@ local function do_particle_zap(pos, amount)
         length = 0.27
     }
     -- spawn particle
-    minetest.add_particlespawner({
+    core.add_particlespawner({
         amount = amount,
         time = math.random(0.5, 0.7),
         minpos = {
@@ -186,6 +186,29 @@ function schem_lib.func.update_screens(pos1, pos2)
     end
 end
 
+function schem_lib.func.clear_screens(pos1, pos2)
+    if core.get_modpath("digiterms") == nil then
+        return
+    end
+    local screens = core.get_objects_in_area(pos1, pos2)
+    for _, obj in pairs(screens) do
+        if obj then
+            local pos = obj:get_pos()
+            local node = core.get_node(pos)
+            local ent = obj:get_luaentity()
+            if ent then
+                if ent.name == "digiterms:screen" then
+                    obj:remove()
+                elseif ent.name == "digilines_lcd:text" then
+                    if node.name ~= "digilines:lcd" then
+                        obj:remove()
+                    end
+                end
+            end
+        end
+    end
+end
+
 function schem_lib.func.jump_ship_move_contents(lmeta)
     local pos = lmeta.origin
     local dest = lmeta.dest
@@ -195,19 +218,19 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
     local dist_z = 0
 
     if pos.x >= dest.x then
-        dist_x = -(pos.x - dest.x)
+        dist_x = math.floor(-(pos.x - dest.x))
     elseif pos.x < dest.x then
-        dist_x = dest.x - pos.x
+        dist_x = math.floor(dest.x - pos.x)
     end
     if pos.y >= dest.y then
-        dist_y = -(pos.y - dest.y)
+        dist_y = math.floor(-(pos.y - dest.y)) + 1
     elseif pos.y < dest.y then
-        dist_y = dest.y - pos.y
+        dist_y = math.floor(dest.y - pos.y) + 1
     end
     if pos.z >= dest.z then
-        dist_z = -(pos.z - dest.z)
+        dist_z = math.floor(-(pos.z - dest.z))
     elseif pos.z < dest.z then
-        dist_z = dest.z - pos.z
+        dist_z = math.floor(dest.z - pos.z)
     end
 
     local pos1 = vector.subtract(pos, {
@@ -222,7 +245,7 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
     })
 
     -- get cube of area nearby
-    local objects = minetest.get_objects_in_area(pos1, pos2) or {}
+    local objects = core.get_objects_in_area(pos1, pos2) or {}
     for _, obj in pairs(objects) do
         if obj then
             local new_pos = vector.add(obj:get_pos(), {
@@ -231,7 +254,7 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
                 z = dist_z
             })
             if obj:is_player() then
-                local player = minetest.get_player_by_name(obj:get_player_name())
+                local player = core.get_player_by_name(obj:get_player_name())
                 if player.send_mapblock then
                     for x = -1, 1 do
                         for y = -1, 1 do
@@ -244,10 +267,10 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
                             end
                         end
                     end
-                    -- minetest.log("send_mapblock " .. tostring(sent))
+                    -- core.log("send_mapblock " .. tostring(sent))
                 end
                 for i = 1, 3 do
-                    minetest.after(i, function()
+                    core.after(i, function()
                         for i = 1, 3 do
                             local p = {
                                 x = new_pos.x + math.random(-6, 6),
@@ -259,7 +282,7 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
                     end)
                 end
                 obj:set_pos(new_pos)
-                minetest.after(0, function()
+                core.after(0, function()
                     obj:set_pos(new_pos)
                     do_particle_zap(new_pos, 2)
                 end)
@@ -270,6 +293,9 @@ function schem_lib.func.jump_ship_move_contents(lmeta)
                     if ent.name == "digiterms:screen" then
                         obj:remove()
                         rem = true
+                    --[[elseif ent.name == "digilines_lcd:text" then
+                        obj:remove()
+                        rem = true]]--
                     elseif ent.name == "3d_armor_stand:armor_entity" then
                         obj:remove()
                         rem = true
@@ -304,11 +330,11 @@ function schem_lib.func.jump_ship_emit_player(lmeta, arriving)
     })
 
     -- get cube of area nearby
-    local objects = minetest.get_objects_in_area(pos1, pos2) or {}
+    local objects = core.get_objects_in_area(pos1, pos2) or {}
     for _, obj in pairs(objects) do
         if obj then
             if obj:is_player() then
-                local player = minetest.get_player_by_name(obj:get_player_name())
+                local player = core.get_player_by_name(obj:get_player_name())
                 if not arriving then
                     player:set_physics_override({
                         gravity = 0
@@ -335,11 +361,11 @@ local function emerge_callback(pos, action, num_calls_remaining, context)
 
     -- Send progress message
     if context.total_blocks == context.loaded_blocks then
-        -- minetest.chat_send_all("Finished loading blocks!")
+        -- core.chat_send_all("Finished loading blocks!")
     else
         local perc = 100 * context.loaded_blocks / context.total_blocks
         local msg = string.format("Loading blocks %d/%d (%.2f%%)", context.loaded_blocks, context.total_blocks, perc)
-        -- minetest.chat_send_all(msg)
+        -- core.chat_send_all(msg)
     end
 end
 
@@ -368,12 +394,12 @@ function schem_lib.func.check_dest_clear(pos, dest, size)
         end
     end
 
-    local c_vacuum = minetest.get_content_id("vacuum:vacuum")
-    local c_atmos = minetest.get_content_id("vacuum:atmos_thin")
-    local c_atmos2 = minetest.get_content_id("asteroid:atmos")
-    local c_ignore = minetest.get_content_id("ignore")
+    local c_vacuum = core.get_content_id("vacuum:vacuum")
+    local c_atmos = core.get_content_id("vacuum:atmos_thin")
+    local c_atmos2 = core.get_content_id("asteroid:atmos")
+    local c_ignore = core.get_content_id("ignore")
 
-    local manip = minetest.get_voxel_manip()
+    local manip = core.get_voxel_manip()
     local e1, e2 = manip:read_from_map(pos1, pos2)
     local area = VoxelArea:new({
         MinEdge = e1,
@@ -406,7 +432,7 @@ function schem_lib.func.check_dest_clear(pos, dest, size)
 
     if ignore > 0 and count == 0 then
         local context = {} -- persist data between callback calls
-        minetest.emerge_area(pos1, pos2, emerge_callback, context)
+        core.emerge_area(pos1, pos2, emerge_callback, context)
 
         return false
     end
@@ -420,7 +446,7 @@ end
 
 
 local function find_nodes(pos, r, search)
-    local nodes = minetest.find_nodes_in_area({
+    local nodes = core.find_nodes_in_area({
         x = pos.x - r,
         y = pos.y - r,
         z = pos.z - r

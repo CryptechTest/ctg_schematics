@@ -1,9 +1,9 @@
-local S = minetest.get_translator(minetest.get_current_modname())
+local S = core.get_translator(core.get_current_modname())
 
 schem_lib = {}
 
 -- load files
-local default_path = minetest.get_modpath("schem_lib")
+local default_path = core.get_modpath("schem_lib")
 
 dofile(default_path .. "/" .. "common.lua")
 dofile(default_path .. "/" .. "functions.lua")

@@ -1,6 +1,6 @@
 local extension = ".mtx"
 local STOR_DIR = "schem_lib"
-local world_path = minetest.get_worldpath()
+local world_path = core.get_worldpath()
 
 -- Save to file
 function schem_lib.emit(data, flags)
@@ -28,7 +28,7 @@ function schem_lib.emit(data, flags)
 
     if flags.file_cache and flags.file_cache == true then
         local path = world_path .. "/" .. STOR_DIR
-        minetest.mkdir(path)
+        core.mkdir(path)
         local filename = path .. "/" .. data.filename
         local file = io.open(filename .. extension, "w")
 
@@ -37,10 +37,10 @@ function schem_lib.emit(data, flags)
     end
 
     if flags.origin_clear and flags.origin_clear == true then
-        minetest.after(7, function()
+        core.after(7, function()
             schem_lib.func.clear_position(pos1, pos2)
         end)
-        minetest.after(10, function()
+        core.after(10, function()
             schem_lib.func.clear_position(pos1, pos2)
         end)
     end
@@ -63,7 +63,7 @@ end
 
 -- Load from file using world directory
 function schem_lib.load_emitted_file(data)
-    minetest.log(">>>> loading " .. data.filename)
+    core.log(">>>> loading " .. data.filename)
     local file = io.open(data.filepath .. data.filename .. extension, "r")
     local content = ""
     local chunksize = 32768
@@ -74,16 +74,16 @@ function schem_lib.load_emitted_file(data)
             if not chunk then
                 break
             end
-            minetest.log(">> Loaded chunk " .. c)
+            core.log(">> Loaded chunk " .. c)
             c = c + 1
             content = content .. chunk
         end
         file:close()
     end
     -- local content = file:read("*all")
-    minetest.log(">>>> File Loaded " .. data.filename)
+    core.log(">>>> File Loaded " .. data.filename)
     local count, ver, meta = schem_lib.process_emitted(data.origin, content, nil, data.moveObj)
 
-    minetest.log(">>> Emitted Load " .. data.filename)
+    core.log(">>> Emitted Load " .. data.filename)
     return meta
 end
