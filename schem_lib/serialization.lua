@@ -200,6 +200,9 @@ function schem_lib.process_emitted(origin_pos, obj_json, obj_table, moveObj)
     if obj_table == nil then
         obj_table = load_json_schematic(obj_json)
     end
+    if not obj_table then
+        return nil
+    end
     local nodes = obj_table.cuboid
     if not nodes then
         return nil

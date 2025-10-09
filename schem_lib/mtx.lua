@@ -33,10 +33,10 @@ end
 function schem_lib.get_serialized_flags(flags)
     local file_cache = "\"file_cache\":" .. tostring(flags.file_cache)
     local use_inv = "\"keep_inv\":" .. tostring(flags.keep_inv)
-    local use_meta = "\"keep_meta\":" .. tostring(flags.keep_meta)
+    local use_meta = "\"keep_meta\":" .. tostring(flags.keep_meta or true)
     local origin_clear = "\"origin_clear\":" .. tostring(flags.origin_clear)
-    local keep_timers = "\"keep_timers\":" .. tostring(flags.keep_timers)
-    local stop_timers = "\"stop_timers\":" .. tostring(flags.stop_timers)
+    local keep_timers = "\"keep_timers\":" .. tostring(flags.keep_timers or true)
+    local stop_timers = "\"stop_timers\":" .. tostring(flags.stop_timers or false)
     -- create flags
     local value = "{" .. file_cache .. "," .. use_inv .. "," .. use_meta .. "," ..
                         origin_clear .. "," .. keep_timers .. "," .. stop_timers .. "}"
