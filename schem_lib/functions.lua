@@ -26,6 +26,11 @@ function schem_lib.func.clear_position(pos1, pos2)
     pos1, pos2 = schem_lib.common.sort_pos(pos1, pos2)
     local count = 0
     local c_vaccuum = core.get_content_id("vacuum:vacuum")
+    if pos1.y < 2000 then
+        c_vaccuum = core.get_content_id("air")
+    elseif pos1.y < 4000 then
+        c_vaccuum = core.get_content_id("ctg_world:skygap")
+    end
     local c_ignore = core.get_content_id("ignore")
     local vm = VoxelManip(pos1, pos2)
     local pmin, pmax= vm:read_from_map(pos1, pos2)
@@ -120,7 +125,7 @@ local function do_particle_zap(pos, amount)
     -- spawn particle
     core.add_particlespawner({
         amount = amount,
-        time = math.random(0.5, 0.7),
+        time = math.random(5, 7) * 0.1,
         minpos = {
             x = pos.x - 0.2,
             y = pos.y - 0.15,
@@ -388,12 +393,14 @@ function schem_lib.func.check_dest_clear(pos, dest, size)
                 local p = vector.new(x, y, z)
                 -- is spawn area protected ?
                 if inside_spawn(p, protector_spawn) then
-                    return false
+                    --return false
                 end
             end
         end
     end
 
+    local c_air = core.get_content_id("air")
+    local c_sky = core.get_content_id("ctg_world:skygap")
     local c_vacuum = core.get_content_id("vacuum:vacuum")
     local c_atmos = core.get_content_id("vacuum:atmos_thin")
     local c_atmos2 = core.get_content_id("asteroid:atmos")
@@ -421,8 +428,12 @@ function schem_lib.func.check_dest_clear(pos, dest, size)
                 elseif data[index] == c_vacuum then
                     count = count + 1
                 elseif data[index] == c_atmos then
-                    -- count = count + 1
+                     count = count + 1
                 elseif data[index] == c_atmos2 then
+                    count = count + 1
+                elseif data[index] == c_air then
+                    count = count + 1
+                elseif data[index] == c_sky then
                     count = count + 1
                 end
 
